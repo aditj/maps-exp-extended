@@ -1,0 +1,168 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+{% block global_styles %}
+<style>
+    .grid {
+        display: grid;
+
+        grid-template-columns: {% for i in Constants.grid_x %} auto {% endfor %};
+    }
+    table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  text-align: center;
+}
+    .col {
+        border: 1px solid black;
+        text-align: center;
+    }
+
+    .col-disabled {
+        text-align: center;
+        border: 1px solid black;
+        background-color: #ccc;
+    }
+    .selected {
+        background-color: red;
+        color: white;
+    }
+    .confirm {
+        margin: auto;
+        margin-top: 10px;
+    }
+</style>
+
+{% endblock %}
+
+
+{% block title %}
+explore.
+{% endblock %}
+
+{% block content %}
+<table>
+    <thead>
+        <th>
+            Your Score
+        </th>
+        <th>
+            <span>Opponents Score</span>
+        </th>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="player-payoff">
+                {{player.current_payoff}}
+            </td>
+            <td class="opponent-payoff">
+                {{opponent_payoff}}
+            </td>
+        </tr>
+    </tbody>
+
+</table>
+<p>
+    Hi please select a block to explore. Maximum is 5, Minimum is 1.
+</p>
+<div class='grid'>
+    {% for element in grid %}
+        {% if element.occupied %}
+
+            <div class="col" data-x="{{element.x}}" data-y="{{element.y}}">
+               &nbsp;{{element.value}}
+            </div>
+        {% else %}
+
+            <div class="col-disabled" data-x="{{element.x}}" data-y="{{element.y}}">
+                {{element.value}}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<input type="hidden" name="current_x" id="current_x" value="0">
+<input type="hidden" name="current_y" id="current_y" value="0">
+
+<div class="confirm btn btn-success"> Play Move </div>
+<svg class="chart" width="200px" height="200px">
+
+</svg>
+{% next_button %}
+<script src="{% static 'global/d3.v7.min.js' %}"></script>
+<script>
+    
+    function createBarChart(data) {
+        const width = 200,
+        height = 200,
+        margins = {top:20, right: 50, bottom: 50, left: 50};
+
+        const yScale = d3.scaleLinear()
+                        .range([0,height])
+                        .domain([0,Math.sqrt(data.length)]);
+
+        const xScale = d3.scaleLinear()
+                    .range([0,width])
+                    .domain([0,Math.sqrt(data.length)]);
+        data.forEach(d => {
+                        d.value=+d.value;
+                        });
+        const chart = d3.select('svg')
+                        .attr('width', width + margins.right + margins.left)
+                        .attr('height', height + margins.top + margins.bottom)
+                        .append('g')
+                        .attr('transform','translate(' + margins.left + ',' + margins.top + ')');
+        
+        var colors = d3.scaleQuantize()
+                        .domain(d3.extent(data,d=>d.value))
+                        .range(["red","orange" ,"green"]);
+        chart.selectAll('g')
+            .data(data).enter().append('g')
+            .append('rect')
+            .attr('x', d => {return xScale(d.i)})
+            .attr('y', d => {return yScale(d.j)})
+            .style('fill', d=> {return colors(d.value)})
+            .attr('width', 40)
+            .attr('height', 40)
+    }
+createBarChart(js_vars['data']);
+    current_chance = js_vars['current_chance'];
+    if ((current_chance - {{   player.id_in_group  }}) % 2 == 0) {
+        $('.confirm').show();
+    } else {
+        $('.confirm').hide();
+    }
+    $(".otree-btn-next").hide();
+    $(".col").click(function () {
+        $("input#current_x").val($(this).attr("data-x"));
+        $("input#current_y").val($(this).attr("data-y"));
+        $('.col').removeClass('selected');
+        $(this).addClass('selected');
+
+    });
+    $(".confirm").click(function () {
+        liveSend({
+            'current_x': $("input#current_x").val(),
+            'current_y': $("input#current_y").val(),
+        })
+    });
+
+    function liveRecv(data) {
+        current_chance = data['current_chance'];
+        was_opponent = data['was_opponent'];
+        x_sel = data["data"]["current_x"];
+        y_sel = data["data"]["current_y"];
+        $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
+
+        $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").removeClass("col selected").addClass("col-disabled");
+
+        if (was_opponent) {
+            $('.confirm').show();
+            $(".opponent-payoff").html(data["opponent_payoff"]);
+        } else {
+            $('.confirm').hide();
+            $(".player-payoff").html(data["player_payoff"]);
+
+        }
+    }
+</script>
+{% endblock %}
