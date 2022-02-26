@@ -64,12 +64,13 @@ explore.
 <p>
     Hi please select a block to explore. Maximum is 5, Minimum is 1.
 </p>
+<span class="turn-indicator"></span>
 <div class='grid'>
     {% for element in grid %}
         {% if element.occupied %}
 
             <div class="col" data-x="{{element.x}}" data-y="{{element.y}}">
-               &nbsp;{{element.value}}
+               &nbsp;
             </div>
         {% else %}
 
@@ -80,14 +81,15 @@ explore.
     {% endfor %}
 </div>
 
-<input type="hidden" name="current_x" id="current_x" value="0">
-<input type="hidden" name="current_y" id="current_y" value="0">
+<input type="hidden" name="current_x" id="current_x" value="-1">
+<input type="hidden" name="current_y" id="current_y" value="-1">
 
 <div class="confirm btn btn-success"> Play Move </div>
+{% next_button %}
 <svg class="chart" width="200px" height="200px">
 
 </svg>
-{% next_button %}
+
 <script src="{% static 'global/d3.v7.min.js' %}"></script>
 <script>
     
@@ -128,8 +130,11 @@ createBarChart(js_vars['data']);
     current_chance = js_vars['current_chance'];
     if ((current_chance - {{   player.id_in_group  }}) % 2 == 0) {
         $('.confirm').show();
+        $(".turn-indicator").html("Your Turn");
     } else {
+
         $('.confirm').hide();
+        $(".turn-indicator").html("Opponent's Turn");
     }
     $(".otree-btn-next").hide();
     $(".col").click(function () {
@@ -140,6 +145,10 @@ createBarChart(js_vars['data']);
 
     });
     $(".confirm").click(function () {
+        if($("input#current_x").val()==-1){
+            alert("Please select a block to explore");
+            return;
+        }
         liveSend({
             'current_x': $("input#current_x").val(),
             'current_y': $("input#current_y").val(),
@@ -154,12 +163,15 @@ createBarChart(js_vars['data']);
         $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
 
         $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").removeClass("col selected").addClass("col-disabled");
-
+        
         if (was_opponent) {
             $('.confirm').show();
+            $(".turn-indicator").html("Your Turn");
             $(".opponent-payoff").html(data["opponent_payoff"]);
         } else {
+            $("input#current_x").val(-1);
             $('.confirm').hide();
+            $(".turn-indicator").html("Opponent's Turn");
             $(".player-payoff").html(data["player_payoff"]);
 
         }
