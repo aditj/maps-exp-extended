@@ -2,10 +2,31 @@
 {% load otree static %}
 
 {% block title %}
-    Page title
+    Your Results
 {% endblock %}
 
 {% block content %}
+<table>
+    <thead>
+        <th>
+            Your Score
+        </th>
+        <th>
+            <span>Opponents Score</span>
+        </th>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="player-payoff">
+                {{player.current_payoff}}
+            </td>
+            <td class="opponent-payoff">
+                {{opponent_payoff}}
+            </td>
+        </tr>
+    </tbody>
+
+</table>
 
     {% next_button %}
 {% endblock %}

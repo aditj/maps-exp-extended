@@ -50,7 +50,13 @@ class ResultsWaitPage(WaitPage):
 
 
 class Results(Page):
-    pass
+    def vars_for_template(self):
+        other_players = self.player.group.get_players()
+
+        opponent_payoff = [player.current_payoff for player in other_players if player != self.player][0]
+        return {
+            'opponent_payoff': opponent_payoff,
+        }
 
 
 page_sequence = [Instructions] + [GridPlay] +[ResultsWaitPage, Results]

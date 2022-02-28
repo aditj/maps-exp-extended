@@ -12,12 +12,12 @@
   border-collapse: collapse;
   text-align: center;
 }
-    .col {
+    .box {
         border: 1px solid black;
         text-align: center;
     }
 
-    .col-disabled {
+    .disabled {
         text-align: center;
         border: 1px solid black;
         background-color: #ccc;
@@ -69,12 +69,12 @@ explore.
     {% for element in grid %}
         {% if element.occupied %}
 
-            <div class="col" data-x="{{element.x}}" data-y="{{element.y}}">
+            <div class="box" data-x="{{element.x}}" data-y="{{element.y}}">
                &nbsp;
             </div>
         {% else %}
 
-            <div class="col-disabled" data-x="{{element.x}}" data-y="{{element.y}}">
+            <div class="disabled" data-x="{{element.x}}" data-y="{{element.y}}">
                 {{element.value}}
             </div>
         {% endif %}
@@ -137,12 +137,11 @@ createBarChart(js_vars['data']);
         $(".turn-indicator").html("Opponent's Turn");
     }
     $(".otree-btn-next").hide();
-    $(".col").click(function () {
+    $(".box").click(function (e) {
         $("input#current_x").val($(this).attr("data-x"));
         $("input#current_y").val($(this).attr("data-y"));
-        $('.col').removeClass('selected');
+        $('.box').removeClass('selected');
         $(this).addClass('selected');
-
     });
     $(".confirm").click(function () {
         if($("input#current_x").val()==-1){
@@ -157,13 +156,17 @@ createBarChart(js_vars['data']);
 
     function liveRecv(data) {
         current_chance = data['current_chance'];
+        console.log(current_chance)
+        if(current_chance>20){
+            $(".otree-btn-next").click()
+        }
         was_opponent = data['was_opponent'];
         x_sel = data["data"]["current_x"];
         y_sel = data["data"]["current_y"];
-        $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
+        $(".box[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
 
-        $(".col[data-x='" + x_sel + "'][data-y='" + y_sel + "']").removeClass("col selected").addClass("col-disabled");
-        
+        $(".box[data-x='" + x_sel + "'][data-y='" + y_sel + "']").removeClass("box").removeClass("selected").addClass("disabled");
+        $(".disabled[data-x='" + x_sel + "'][data-y='" + y_sel + "']").replaceWith($(".disabled[data-x='" + x_sel + "'][data-y='" + y_sel + "']").clone());
         if (was_opponent) {
             $('.confirm').show();
             $(".turn-indicator").html("Your Turn");

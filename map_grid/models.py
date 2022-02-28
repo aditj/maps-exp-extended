@@ -94,14 +94,14 @@ def update_element(self,data):
        "data":data,
         "was_opponent":0,
         "player_payoff":self.current_payoff,
-        "chance":self.current_chance,
+        "current_chance":self.current_chance,
         "element_value":value,
     },
     opponent_id:{
         "data":data,
         "was_opponent":1,
         "opponent_payoff":self.current_payoff,
-        "chance":self.current_chance,
+        "current_chance":self.current_chance,
         "element_value":value,
     }}
 
