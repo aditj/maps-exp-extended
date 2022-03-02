@@ -36,3 +36,4 @@ SECRET_KEY = '&77ci)4n#vu=mnr^z8g*#uv*f4)0@-!e@l%^pfc49-%od@kekk'
 
 # if an app is included in SESSION_CONFIGS, you don't need to list it here
 INSTALLED_APPS = ['otree']
+OTREE_PRODUCTION=1 # uncomment this line to enable production mode

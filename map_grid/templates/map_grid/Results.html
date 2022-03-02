@@ -6,29 +6,176 @@
 {% endblock %}
 
 {% block content %}
-<table>
-    <thead>
-        <th>
-            Your Score
-        </th>
-        <th>
-            <span>Opponents Score</span>
-        </th>
-    </thead>
-    <tbody>
-        <tr>
-            <td class="player-payoff">
-                {{player.current_payoff}}
-            </td>
-            <td class="opponent-payoff">
-                {{opponent_payoff}}
-            </td>
-        </tr>
-    </tbody>
+<style>
+    .score-table{
+        display: flex;
+    width: 100%;
+    justify-content: space-between;
 
-</table>
+    }
+    .grid {
+        display: grid;
 
+        grid-template-columns: {% for i in Constants.grid_x %} 50px {% endfor %};
+    }
+    .box{
+        text-align: center;
+    }
+    .box {
+        height: 50px;
+        border: 1px solid black;
+        text-align: center;
+    }
+    .box.player{
+        background-color: blue;
+      color: white;
+    }
+ .box.opponent{
+     background-color: mediumvioletred;
+ }
+ .box.none{
+     background-color: gray;
+     color: white;
+ }
+ .container-map{
+        display: flex;
+    width: 100%;
+    justify-content: space-around;
+
+    }
+    .legend{
+        display: flex;
+        justify-content: space-between;
+    }
+    .legend>div{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
+<div class="container-map">
+    <div>
+    
+        <div class="score-table">
+            <div>
+               <b> Your Score:</b> <span class="player-payoff"> {{player.current_payoff}}</span>
+            </div>
+            <div>
+               <b> Opponent Score:</b> <span class="opponent-payoff"> {{opponent_payoff}}</span>
+            </div>
+        </div>
+        <div class="legend">
+            <div>
+                <div>
+                   Your Block
+                </div>
+                <div>
+                    <svg width="20px" height="20px">
+                        <rect width=20px height=20px fill='blue'></rect>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <div>
+                    Opponent's Block
+                </div>
+                <div>
+                    <svg width="20px" height="20px">
+                        <rect width=20px height=20px fill='mediumvioletred'></rect>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <div>
+                    Unexplored
+                </div>
+                <div>
+                    <svg width="20px" height="20px">
+                        <rect width=20px height=20px fill='gray'></rect>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class='grid'>
+            {% for element in grid %}
+                {% if element.player_occupied %}
+        
+                    <div class="box player" data-x="{{element.x}}" data-y="{{element.y}}">
+                        {{element.value}}
+                    </div>
+                {% elif element.opponent_occupied %}
+        
+                    <div class="box opponent" data-x="{{element.x}}" data-y="{{element.y}}">
+                        {{element.value}}
+                    </div>
+                {% else %}
+                    <div class="box none" data-x="{{element.x}}" data-y="{{element.y}}">
+                        {{element.value}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+       
+</div>
+        <div>
+<div>
+    <p>
+        Map (For Reference)
+    </p>
+    <svg class="chart" width="200px" height="200px">
+
+    </svg>
+   
+</div>
+</div>
+
+</div>
+<p>
+    You have succesfully completed the task. Thanks for participating.
+</p>
     {% next_button %}
+    <script src="{% static 'global/d3.v7.min.js' %}"></script>
+    <script>
+        
+        function createBarChart(data) {
+            const width = 200,
+            height = 200,
+            margins = {top:20, right: 50, bottom: 50, left: 50};
+    
+            const yScale = d3.scaleLinear()
+                            .range([0,height])
+                            .domain([0,Math.sqrt(data.length)]);
+    
+            const xScale = d3.scaleLinear()
+                        .range([0,width])
+                        .domain([0,Math.sqrt(data.length)]);
+            data.forEach(d => {
+                            d.value=+d.value;
+                            });
+            const chart = d3.select('svg.chart')
+                            .attr('width', width + margins.right + margins.left)
+                            .attr('height', height + margins.top + margins.bottom)
+                            .append('g')
+                            .attr('transform','translate(' + margins.left + ',' + margins.top + ')');
+            
+            var colors = d3.scaleQuantize()
+                            .domain(d3.extent(data,d=>d.value))
+                            .range(["red","orange" ,"green"]);
+            chart.selectAll('g')
+                .data(data).enter().append('g').attr("class","map-box")
+                
+            chart.selectAll('g.map-box').append('rect')
+                .attr('x', d => {return xScale(d.i)})
+                .attr('y', d => {return yScale(d.j)})
+                .style('fill', d=> {return colors(d.value)})
+                .attr('width', 40)
+                .attr('height', 40)
+            // chart.selectAll('g.map-box').append('text').attr('x', d => {return xScale(d.i)+12})
+            // .attr('y', d => {return yScale(d.j)+22})
+            // .text(d => { return d.value; });
+        }
+    createBarChart(js_vars['data']);
+    </script>
 {% endblock %}
 
 

@@ -8,12 +8,13 @@ from otree.api import (
     Currency as c,
     currency_range,
 )
+from otreeutils.admin_extensions import custom_export
 
 
 author = 'Adit Jain'
 
 doc = """
-Your app description
+Map Experiment 2 D
 """
 import numpy as np
 
@@ -21,23 +22,30 @@ class Constants(BaseConstants):
     name_in_url = 'map_grid'
     players_per_group = 2
     num_rounds = 1
-    
-    grid_size = (5, 5)
+    max_turns = 16
+    grid_size = (7, 7)
     grid_dim = grid_size[0]
     grid_x = np.arange(grid_size[0],dtype=int)
     grid_y = np.arange(grid_size[1],dtype=int)
     grid_value = [
-        [1,2,4,1,3,5,2,1,3,4],
-        [2,3,1,4,2,1,3,4,5,2],
-        [4,1,3,2,5,3,1,2,4,5],
-        [1,4,2,3,1,5,4,3,2,5],
-        [3,2,5,1,4,2,5,1,3,4],
-        [5,3,4,2,1,4,3,2,5,1],
-        [2,1,3,5,3,2,4,1,5,3],
-        [3,4,1,2,5,1,2,3,4,5],
-        [1,2,5,4,2,3,1,5,3,4],
-        [4,5,2,1,3,5,4,2,1,3]
-    ]
+    [1,6,6,1,1,6,1],
+    [1,6,6,1,1,6,1],
+    [1,1,1,6,1,1,1],
+    [1,1,10,1,1,6,1],
+    [1,1,1,1,1,1,6],
+    [10,1,1,1,6,1,6],
+    [6,1,6,1,1,1,6],
+]   
+     
+    map =[[29., 34., 24., 24., 19.],
+       [28., 33., 28., 24., 19.],
+       [18., 23., 23., 19., 19.],
+       [27., 18., 23., 19., 29.],
+       [28., 14., 19., 14., 29.]]
+     
+    map_dim = (len(map), len(map[0]))
+    map_x = np.arange(map_dim[0],dtype=int)
+    map_y = np.arange(map_dim[1],dtype=int)
 
 class Subsession(BaseSubsession):
     pass

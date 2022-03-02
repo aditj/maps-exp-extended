@@ -5,19 +5,18 @@
     .grid {
         display: grid;
 
-        grid-template-columns: {% for i in Constants.grid_x %} auto {% endfor %};
+        grid-template-columns: {% for i in Constants.grid_x %} 50px {% endfor %};
     }
-    table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
-  text-align: center;
-}
+ 
     .box {
+        height: 50px;
         border: 1px solid black;
         text-align: center;
     }
 
     .disabled {
+        height: 50px;
+
         text-align: center;
         border: 1px solid black;
         background-color: #ccc;
@@ -30,6 +29,31 @@
         margin: auto;
         margin-top: 10px;
     }
+    .turn-indicator{
+        font-weight: 900
+    }
+    .container-map{
+        display: flex;
+    width: 100%;
+    justify-content: space-around;
+
+    }
+    .score-table{
+        display: flex;
+    width: 100%;
+    justify-content: space-between;
+
+    }
+    
+    .legend{
+        display: flex;
+        justify-content: space-between;
+    }
+    .legend>div{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 </style>
 
 {% endblock %}
@@ -40,31 +64,23 @@ explore.
 {% endblock %}
 
 {% block content %}
-<table>
-    <thead>
-        <th>
-            Your Score
-        </th>
-        <th>
-            <span>Opponents Score</span>
-        </th>
-    </thead>
-    <tbody>
-        <tr>
-            <td class="player-payoff">
-                {{player.current_payoff}}
-            </td>
-            <td class="opponent-payoff">
-                {{opponent_payoff}}
-            </td>
-        </tr>
-    </tbody>
+ 
+<p>There are three levels of rewards: 1$,6$ and 10$. The map is a scaled down version of the 7x7 landscape.You can't click on an already explored block. Only {{ Constants.max_turns }} blocks can be explored before the game ends.</p>
+<div class="container-map">
+    <div>
+       
 
-</table>
 <p>
-    Hi please select a block to explore. Maximum is 5, Minimum is 1.
+    It's <span class="turn-indicator"></span>
 </p>
-<span class="turn-indicator"></span>
+<div class="score-table">
+    <div>
+       <b> Your Score:</b> <span class="player-payoff"> {{player.current_payoff}}</span>
+    </div>
+    <div>
+       <b> Opponent Score:</b> <span class="opponent-payoff"> {{opponent_payoff}}</span>
+    </div>
+</div>
 <div class='grid'>
     {% for element in grid %}
         {% if element.occupied %}
@@ -85,14 +101,54 @@ explore.
 <input type="hidden" name="current_y" id="current_y" value="-1">
 
 <div class="confirm btn btn-success"> Play Move </div>
+</div>
 {% next_button %}
-<svg class="chart" width="200px" height="200px">
+<div>
 
-</svg>
 
+
+
+    <svg class="chart" width="200px" height="200px">
+
+    </svg>
+    <h5>Legend:</h5>
+    <div class="legend">
+        <div>
+            <div>
+                High Value
+            </div>
+            <div>
+                <svg width="20px" height="20px">
+                    <rect width=20px height=20px fill='green'></rect>
+                </svg>
+            </div>
+        </div>
+        <div>
+            <div>
+                Medium Value
+            </div>
+            <div>
+                <svg width="20px" height="20px">
+                    <rect width=20px height=20px fill='orange'></rect>
+                </svg>
+            </div>
+        </div>
+        <div>
+            <div>
+                Low Value
+            </div>
+            <div>
+                <svg width="20px" height="20px">
+                    <rect width=20px height=20px fill='red'></rect>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 <script src="{% static 'global/d3.v7.min.js' %}"></script>
 <script>
-    
+    // Creating Map
     function createBarChart(data) {
         const width = 200,
         height = 200,
@@ -108,7 +164,7 @@ explore.
         data.forEach(d => {
                         d.value=+d.value;
                         });
-        const chart = d3.select('svg')
+        const chart = d3.select('svg.chart')
                         .attr('width', width + margins.right + margins.left)
                         .attr('height', height + margins.top + margins.bottom)
                         .append('g')
@@ -126,58 +182,65 @@ explore.
             .attr('width', 40)
             .attr('height', 40)
     }
-createBarChart(js_vars['data']);
+    createBarChart(js_vars['data']);
+    // Constants 
+    id_in_group = {{   player.id_in_group  }};
+    max_turns = {{ Constants.max_turns }};
+    // Handling Chance
     current_chance = js_vars['current_chance'];
-    if ((current_chance - {{   player.id_in_group  }}) % 2 == 0) {
+    if ((current_chance - id_in_group) % 2 == 0) {
         $('.confirm').show();
-        $(".turn-indicator").html("Your Turn");
+        $(".turn-indicator").html("Your Turn. Please select a block and click 'Play Move'");
     } else {
 
         $('.confirm').hide();
-        $(".turn-indicator").html("Opponent's Turn");
+        $(".turn-indicator").html("Opponent's Turn. Please wait for your turn.");
     }
     $(".otree-btn-next").hide();
+    // Click Function for blocks
     $(".box").click(function (e) {
         $("input#current_x").val($(this).attr("data-x"));
         $("input#current_y").val($(this).attr("data-y"));
         $('.box').removeClass('selected');
         $(this).addClass('selected');
     });
+    // Next Turn
     $(".confirm").click(function () {
         if($("input#current_x").val()==-1){
-            alert("Please select a block to explore");
-            return;
+        alert("Please select a block to explore");
+        return;
         }
         liveSend({
-            'current_x': $("input#current_x").val(),
-            'current_y': $("input#current_y").val(),
+        'current_x': $("input#current_x").val(),
+        'current_y': $("input#current_y").val(),
         })
     });
-
+    // Recieve Chance
     function liveRecv(data) {
-        current_chance = data['current_chance'];
-        console.log(current_chance)
-        if(current_chance>20){
-            $(".otree-btn-next").click()
-        }
-        was_opponent = data['was_opponent'];
-        x_sel = data["data"]["current_x"];
-        y_sel = data["data"]["current_y"];
-        $(".box[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
+            current_chance = data['current_chance'];
+            if (current_chance >= max_turns) {
+                $(".otree-btn-next").click()
+            }
+            was_opponent = data['was_opponent'];
+            x_sel = data["data"]["current_x"];
+            y_sel = data["data"]["current_y"];
+            $(".box[data-x='" + x_sel + "'][data-y='" + y_sel + "']").html(data['element_value']);
 
-        $(".box[data-x='" + x_sel + "'][data-y='" + y_sel + "']").removeClass("box").removeClass("selected").addClass("disabled");
-        $(".disabled[data-x='" + x_sel + "'][data-y='" + y_sel + "']").replaceWith($(".disabled[data-x='" + x_sel + "'][data-y='" + y_sel + "']").clone());
-        if (was_opponent) {
-            $('.confirm').show();
-            $(".turn-indicator").html("Your Turn");
-            $(".opponent-payoff").html(data["opponent_payoff"]);
-        } else {
-            $("input#current_x").val(-1);
-            $('.confirm').hide();
-            $(".turn-indicator").html("Opponent's Turn");
-            $(".player-payoff").html(data["player_payoff"]);
+            $(".box[data-x='" + x_sel + "'][data-y='" + y_sel +
+                "']").removeClass("box").removeClass("selected").addClass("disabled");
+            $(".disabled[data-x='" + x_sel + "'][data-y='" + y_sel + "']").replaceWith($(".disabled[data-x='" + x_sel +
+                "'][data-y='" + y_sel + "']").clone());
+            if (was_opponent) {
+                $('.confirm').show();
+                $(".turn-indicator").html("Your Turn");
+                $(".opponent-payoff").html(data["opponent_payoff"]);
+            } else {
+                $("input#current_x").val(-1);
+                $('.confirm').hide();
+                $(".turn-indicator").html("Opponent's Turn");
+                $(".player-payoff").html(data["player_payoff"]);
 
+            }
         }
-    }
 </script>
 {% endblock %}
