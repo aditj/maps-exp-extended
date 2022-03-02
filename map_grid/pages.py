@@ -99,4 +99,4 @@ class Results(Page):
         }
 
 
-page_sequence = [Instructions,WaitPage] + [GridPlay] +[ResultsWaitPage, Results]
+page_sequence = [Instructions,ResultsWaitPage] + [GridPlay] +[ResultsWaitPage, Results]
